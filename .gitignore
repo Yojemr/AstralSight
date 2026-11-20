@@ -1,0 +1,34 @@
+# Dependencias y cachés
+node_modules/
+.npm/
+.vite/
+
+# Compilaciones y resultados locales
+dist/
+dist-ssr/
+dev-dist/
+coverage/
+
+# Configuración local
+.env
+.env.*
+!.env.example
+*.local
+.npmrc
+
+# Registros y archivos temporales
+logs/
+*.log
+*.tmp
+
+# Editores y sistema operativo
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
