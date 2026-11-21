@@ -3,6 +3,7 @@ import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  cacheDir: 'node_modules/.cache/astralsight-vite',
   optimizeDeps: {
     include: [
       '@mui/icons-material/ArrowBackRounded',
@@ -14,6 +15,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: 'script-defer',
       manifest: {
         id: './',
         name: 'AstralSight',
@@ -32,6 +34,8 @@ export default defineConfig({
         ],
       },
       workbox: {
+        clientsClaim: true,
+        skipWaiting: true,
         globPatterns: ['**/*.{html,js,png,jpg,webp}'],
         navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,

@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Link as RouterLink, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link as RouterLink, Navigate, useSearchParams } from 'react-router-dom'
 import { Alert, Box, Button, Container, Link, Paper, Stack, TextField, Typography } from '@mui/material'
 import ArrowBackRounded from '@mui/icons-material/ArrowBackRounded'
 import { skyImage } from '../../../shared/atlasAssets'
+import { getObject } from '../../explorer/data/catalog'
 import { dashboardFor } from '../demoAccounts'
 
 const formInfo = {
@@ -12,19 +13,21 @@ const formInfo = {
 }
 
 export default function AuthPage({ mode, user, onSignIn, onRegister }) {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
   const [requested, setRequested] = useState(false)
   const [params] = useSearchParams()
-  const navigate = useNavigate()
   const { title, action, description } = formInfo[mode]
   const login = mode === 'login'
   const register = mode === 'register'
   const recover = mode === 'recover'
 
-  if (user) return <Navigate to={dashboardFor(user)} replace />
+  const objectId = /^\/mis-fotos\?objeto=([a-z0-9-]+)$/.exec(params.get('destino') ?? '')?.[1]
+  const object = getObject(objectId)
+  const destination = object ? '/mis-fotos?objeto=' + object.id : null
+  const authQuery = destination ? '?' + new URLSearchParams({ destino: destination }) : ''
+
+  if (user) return <Navigate to={user.role === 'user' && destination ? destination : dashboardFor(user)} replace />
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -36,12 +39,13 @@ export default function AuthPage({ mode, user, onSignIn, onRegister }) {
     }
     setBusy(true)
     try {
-      const account = login
-        ? await onSignIn(email, password)
-        : await onRegister(String(values.get('name')).trim(), email, password)
-      const dest = params.get('destino')
-      const allowedDestination = account.role === 'user' && /^\/mis-fotos\?objeto=[a-z]+$/.test(dest ?? '')
-      navigate(allowedDestination ? dest : dashboardFor(account), { replace: true })
+      const email = String(values.get('email') ?? '')
+      const password = String(values.get('password') ?? '')
+      if (login) {
+        await onSignIn(email, password)
+      } else {
+        await onRegister(String(values.get('name') ?? '').trim(), email, password)
+      }
     } catch (error) {
       setMessage(error.message)
     } finally {
@@ -61,10 +65,10 @@ export default function AuthPage({ mode, user, onSignIn, onRegister }) {
         >
           <Typography variant="h3" component="p" sx={{ fontSize: '2.25rem' }}>{skyImage.title}</Typography>
           <Link href={skyImage.source} target="_blank" rel="noreferrer" color="inherit" variant="body2">{skyImage.credit}</Link>
-          <Link href={skyImage.license} target="_blank" rel="noreferrer" color="inherit" variant="caption">CC BY 4.0 · versión monocromática</Link>
+          <Link href={skyImage.license} target="_blank" rel="noreferrer" color="inherit" variant="caption">CC BY 4.0 · recorte monocromático</Link>
         </Box>
         <Stack spacing={2.4} sx={{ p: { xs: 2.5, sm: 4.5 }, maxWidth: 570, width: '100%', mx: 'auto' }}>
-          <Link component={RouterLink} to={recover ? '/ingresar' : '/'} underline="hover" sx={{ display: 'inline-flex', gap: 0.75, alignItems: 'center', alignSelf: 'flex-start' }}>
+          <Link component={RouterLink} to={recover ? '/ingresar' + authQuery : '/'} underline="hover" sx={{ display: 'inline-flex', gap: 0.75, alignItems: 'center', alignSelf: 'flex-start' }}>
             <ArrowBackRounded fontSize="small" />
             {recover ? 'Volver al inicio de sesión' : 'Volver al mapa'}
           </Link>
@@ -74,29 +78,28 @@ export default function AuthPage({ mode, user, onSignIn, onRegister }) {
           </Box>
           <Stack component="form" spacing={2} onSubmit={handleSubmit}>
             {register && <TextField label="Nombre" name="name" autoComplete="name" required slotProps={{ htmlInput: { minLength: 2, maxLength: 80, pattern: '.*[^ ].*' } }} />}
-            <TextField label="Correo" name="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" required />
+            <TextField label="Correo" name="email" type="email" autoComplete="email" required />
             {!recover && (
               <TextField
-                label="Contraseña" name="password" type="password" value={password}
-                onChange={(event) => setPassword(event.target.value)}
+                label="Contraseña" name="password" type="password"
                 autoComplete={register ? 'new-password' : 'current-password'}
                 required helperText={register ? 'Mínimo 8 caracteres. Usa una contraseña de prueba.' : undefined}
                 slotProps={{ htmlInput: { minLength: register ? 8 : undefined, maxLength: 128 } }}
               />
             )}
             {login && (
-              <Link component={RouterLink} to="/recuperar" underline="hover" variant="body2" sx={{ alignSelf: 'flex-end' }}>
+              <Link component={RouterLink} to={'/recuperar' + authQuery} underline="hover" variant="body2" sx={{ alignSelf: 'flex-end' }}>
                 Olvidé mi contraseña
               </Link>
             )}
             {message && <Alert severity="error">{message}</Alert>}
-            {requested && <Alert severity="info">Solicitud simulada. El modo de demostración no envía correos.</Alert>}
+            {requested && <Alert severity="info">Solicitud simulada. Esta versión no envía correos.</Alert>}
             <Button type="submit" variant="contained" size="large" disabled={busy}>{action}</Button>
           </Stack>
           {!recover && (
             <Typography color="text.secondary" variant="body2">
               {login ? '¿Aún no tienes cuenta? ' : '¿Ya tienes cuenta? '}
-              <Link component={RouterLink} to={login ? '/registro' : '/ingresar'} underline="hover">
+              <Link component={RouterLink} to={(login ? '/registro' : '/ingresar') + authQuery} underline="hover">
                 {login ? 'Regístrate' : 'Iniciar sesión'}
               </Link>
             </Typography>

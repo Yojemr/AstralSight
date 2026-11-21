@@ -4,6 +4,7 @@ export function atlasAsset(name) {
 
 export const skyImage = {
   src: atlasAsset('milky-way.webp'),
+  mobileSrc: atlasAsset('milky-way-mobile.webp'),
   title: 'Vía Láctea',
   credit: 'ESO/S. Brunier',
   source: 'https://www.eso.org/public/images/eso0932a/',

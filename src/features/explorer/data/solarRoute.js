@@ -1,45 +1,71 @@
-import { objects } from './catalog'
+import { objectGroups } from './catalog'
 
-export const orbitalSource = 'https://ssd.jpl.nasa.gov/planets/approx_pos.html'
+const planetarySource = 'https://ssd.jpl.nasa.gov/planets/approx_pos.html'
+const dwarfPlanetSource = 'https://science.nasa.gov/solar-system/planets/planet-sizes-and-locations-in-our-solar-system/'
+const constellationSource = 'https://www.iau.org/IAU/Astronomy-FAQs/Constellations.aspx'
 
-const solarEnd = 0.9
-const orbitingObjects = objects.filter((object) => object.orbitAu !== undefined && object.id !== 'luna')
-const orbitStops = orbitingObjects.map((object, index) => ({
-  au: object.orbitAu,
-  fraction: (index / (orbitingObjects.length - 1)) * solarEnd,
-}))
 const orbitalFormat = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 2 })
 const deepSkyFormat = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 })
-const deepSkyObject = objects.find((object) => object.lightYears)
+
+const stops = objectGroups.flatMap((group) => group.objects
+  .filter((object) => object.id !== 'luna')
+  .map((object) => ({ group: group.id, object })))
+const stopIndexById = new Map(stops.map(({ object }, index) => [object.id, index]))
+export const routeIntervals = stops.length - 1
+const lastSolarStop = stops.findLastIndex(({ group }) => group === 'solar')
+
+function solarOrbitAt(position) {
+  const start = Math.min(Math.floor(position), lastSolarStop - 1)
+  const current = stops[start].object
+  const next = stops[start + 1].object
+  const fraction = Math.min(1, position - start)
+  const au = current.orbitAu + (next.orbitAu - current.orbitAu) * fraction
+  return { current, next, au }
+}
+
+export function solarIrradianceProfile() {
+  const samplesPerInterval = 8
+  const solarRadiusAu = 695700 / 149597870.7
+  return Array.from({ length: lastSolarStop * samplesPerInterval + 1 }, (_, index) => {
+    const position = index / samplesPerInterval
+    const { au } = solarOrbitAt(position)
+    const radius = Math.max(au, solarRadiusAu)
+    return { position: position / routeIntervals, irradiance: 1 / radius ** 2 }
+  })
+}
 
 export function objectFraction(object) {
-  if (object.lightYears) return 1
-  return orbitStops.find((stop) => stop.au === object.orbitAu).fraction
+  const id = object.id === 'luna' ? 'tierra' : object.id
+  return stopIndexById.get(id) / routeIntervals
 }
 
 export function objectDistance(object) {
-  if (object.lightYears) return `≈ ${deepSkyFormat.format(object.lightYears)} años luz`
+  if (object.distanceLabel) return object.distanceLabel
+  if (object.lightYears) return `≈ ${deepSkyFormat.format(object.lightYears)} años luz de la Tierra`
+  if (object.id === 'luna') return 'Órbita terrestre'
   if (object.id === 'sol') return '0 UA'
-  return `≈ ${orbitalFormat.format(object.orbitAu)} UA del Sol`
+  if (object.orbitAu !== undefined) return `≈ ${orbitalFormat.format(object.orbitAu)} UA del Sol`
+  return null
 }
 
 export function routeScale(progress) {
-  const offset = progress / 100
-  const alignedStop = orbitStops.find((stop) => Math.abs(stop.fraction - offset) <= 0.0012)
-  const fraction = alignedStop?.fraction ?? offset
-  if (fraction > solarEnd) {
-    return { title: 'Cielo profundo', value: objectDistance(deepSkyObject), note: `${deepSkyObject.name} · cambio de escala` }
+  const offset = Math.max(0, Math.min(1, progress / 100)) * routeIntervals
+  const closestIndex = Math.round(offset)
+  const position = Math.abs(closestIndex - offset) < 0.011 ? closestIndex : offset
+  const nearest = stops[closestIndex]
+  if (position <= lastSolarStop || nearest.group === 'solar') {
+    const { au, current, next } = solarOrbitAt(position)
+    return {
+      title: 'Distancia orbital al Sol',
+      value: `${au ? '≈ ' : ''}${orbitalFormat.format(au)} UA`,
+      note: 'Distancia orbital media · escala visual comprimida',
+      source: current.type === 'Planeta enano' || next.type === 'Planeta enano' ? dwarfPlanetSource : planetarySource,
+    }
   }
 
-  const nextIndex = Math.max(1, orbitStops.findIndex((stop) => stop.fraction >= fraction))
-  const previous = orbitStops[nextIndex - 1]
-  const next = orbitStops[nextIndex]
-  const part = (fraction - previous.fraction) / (next.fraction - previous.fraction)
-  const au = previous.au + (next.au - previous.au) * part
-  return {
-    title: 'Distancia al Sol',
-    value: `${fraction ? '≈ ' : ''}${orbitalFormat.format(au)} UA`,
-    note: 'Distancia orbital · escala comprimida',
-    source: orbitalSource,
+  const { object } = nearest
+  if (nearest.group === 'constellations') {
+    return { title: 'Constelaciones', value: object.name, note: 'Región del cielo · estrellas a distintas distancias', source: constellationSource }
   }
+  return { title: 'Cielo profundo', value: object.name, note: objectDistance(object), source: object.distanceSource }
 }

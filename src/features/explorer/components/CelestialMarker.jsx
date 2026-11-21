@@ -1,21 +1,28 @@
+import { memo } from 'react'
 import Box from '@mui/material/Box'
 import ButtonBase from '@mui/material/ButtonBase'
 import Typography from '@mui/material/Typography'
+import { markerImageFor } from '../data/catalog'
 
+const softEdge = 'radial-gradient(ellipse, #000 46%, #000b 60%, transparent 72%)'
+const panoramaMarkers = new Set(['via-lactea', 'andromeda'])
+const transparentModels = new Set(['haumea', 'makemake', 'eris'])
 const reduceMotion = '@media (prefers-reduced-motion: reduce)'
 const markerFocus = '&:has(.atlas-target:hover, .atlas-target.Mui-focusVisible) .atlas-body'
 
-export default function CelestialMarker({ object, fraction, onSelect }) {
+function CelestialMarker({ object, fraction, onSelect }) {
   const imageSize = {
     xs: `min(${Math.round(object.size * 0.62)}px, 51cqw)`,
-    sm: Math.round(object.size * 0.85),
+    sm: `${Math.round(object.size * 0.85)}px`,
     md: `min(${object.size}px, 43svh)`,
   }
   const position = {
     position: 'absolute',
-    top: `${object.position.y}%`,
+    '--atlas-marker-size': imageSize,
+    '--atlas-marker-bottom-gap': { xs: '160px', md: '154px' },
+    top: `min(${object.position.y}%, calc(100% - var(--atlas-marker-bottom-gap) - var(--atlas-marker-size) / 2))`,
     left: `${fraction * 100}%`,
-    width: imageSize,
+    width: 'var(--atlas-marker-size)',
     aspectRatio: '1',
     translate: '-50% -50%',
   }
@@ -31,19 +38,20 @@ export default function CelestialMarker({ object, fraction, onSelect }) {
       <Box
         component="img"
         className="atlas-body"
-        src={object.photos[0].image}
+        src={markerImageFor(object.id)}
         alt=""
         draggable={false}
+        loading={object.id === 'sol' ? 'eager' : 'lazy'}
         sx={{
           ...position,
           pointerEvents: 'none',
           objectFit: 'contain',
-          mixBlendMode: 'screen',
+          mixBlendMode: transparentModels.has(object.id) ? 'normal' : 'screen',
           clipPath: { luna: 'circle(49% at 50% 50%)', saturno: 'inset(25.5% 2%)' }[object.id] ?? 'none',
           maskImage: {
             sol: 'radial-gradient(circle closest-side at 50% 49%, black 79%, #000d 86%, transparent 99%)',
             orion: 'radial-gradient(ellipse, #000 34%, #000d 48%, transparent 70%)',
-          }[object.id] ?? 'none',
+          }[object.id] ?? (panoramaMarkers.has(object.id) ? softEdge : 'none'),
           transition: 'scale 380ms ease, rotate 380ms ease, filter 260ms ease',
           [reduceMotion]: { transition: 'none' },
         }}
@@ -84,3 +92,5 @@ export default function CelestialMarker({ object, fraction, onSelect }) {
     </Box>
   )
 }
+
+export default memo(CelestialMarker)

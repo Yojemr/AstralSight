@@ -8,7 +8,6 @@ export default function usePanorama() {
   const suppressClick = useRef(false)
   const [dragging, setDragging] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [distance, setDistance] = useState(0)
   const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
   const behavior = reducedMotion ? 'auto' : 'smooth'
 
@@ -22,7 +21,9 @@ export default function usePanorama() {
       const scrolled = Math.max(0, Math.min(max, -lane.getBoundingClientRect().top))
       if (Math.abs(element.scrollLeft - scrolled) > 0.5) element.scrollLeft = scrolled
       mirroredLeft = element.scrollLeft
-      setProgress(max > 0 ? Math.round((scrolled / max) * 1000) / 10 : 0)
+      const fraction = max > 0 ? scrolled / max : 0
+      lane.style.setProperty('--atlas-sky-progress', String(fraction))
+      setProgress(Math.round(fraction * 1000) / 10)
     }
 
     function syncFromHorizontalScroll() {
@@ -33,10 +34,7 @@ export default function usePanorama() {
       window.scrollTo({ top: fromTop + left, behavior: 'auto' })
     }
 
-    const resize = new ResizeObserver(() => {
-      setDistance(element.scrollWidth - element.clientWidth)
-      syncFromPage()
-    })
+    const resize = new ResizeObserver(syncFromPage)
 
     resize.observe(element)
     window.addEventListener('scroll', syncFromPage, { passive: true })
@@ -63,9 +61,9 @@ export default function usePanorama() {
     setPosition(element.scrollLeft + direction * element.clientWidth * 0.74, behavior)
   }
 
-  function goTo(fraction) {
+  function goTo(fraction, scrollBehavior = behavior) {
     const element = viewport.current
-    setPosition((element.scrollWidth - element.clientWidth) * fraction, behavior)
+    setPosition((element.scrollWidth - element.clientWidth) * fraction, scrollBehavior)
   }
 
   function start(event) {
@@ -132,7 +130,7 @@ export default function usePanorama() {
   }
 
   return {
-    track, viewport, progress, distance, dragging, step, goTo,
+    track, viewport, progress, dragging, step, goTo,
     viewportHandlers: {
       onPointerDown: start,
       onPointerMove: move,

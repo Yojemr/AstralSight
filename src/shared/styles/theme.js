@@ -28,6 +28,10 @@ export const atlasTheme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         body: { minWidth: 280 },
+        'html:has([data-atlas-map])': {
+          scrollbarWidth: 'none',
+          '&::-webkit-scrollbar': { display: 'none' },
+        },
       },
     },
   },

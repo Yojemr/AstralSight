@@ -22,6 +22,7 @@ export default function ObjectDialog({ object, observations, user, open, onClose
   const current = photos.find((photo) => photo.image === activeImage) ?? object.photos[0]
   const contributionPath = `/mis-fotos?objeto=${object.id}`
   const signInPath = `/ingresar?destino=${encodeURIComponent(contributionPath)}`
+  const distance = objectDistance(object)
 
   return (
     <Dialog
@@ -47,7 +48,7 @@ export default function ObjectDialog({ object, observations, user, open, onClose
     >
       <DialogTitle component="div" id="object-dialog-header" sx={{ position: 'relative', px: { xs: 2.25, md: 4 }, pt: { xs: 2, md: 3 }, pb: 2, pr: { xs: 7, md: 8 } }}>
         <Typography color="text.secondary" variant="overline" component="span" sx={{ display: 'block', lineHeight: 1.8 }}>
-          {object.type} · {objectDistance(object)}
+          {object.type}{distance ? ' · ' + distance : ''}
         </Typography>
         <Typography component="h2" id="object-dialog-title" variant="h3" sx={{ fontSize: { xs: '2rem', sm: '2.8rem' } }}>
           {object.name}
@@ -102,6 +103,11 @@ export default function ObjectDialog({ object, observations, user, open, onClose
                 Comunidad · {current.credit}
               </Typography>
             )}
+            {current.license && (
+              <Link href={current.license.href} target="_blank" rel="noreferrer" variant="caption" color="text.secondary">
+                {current.license.label}
+              </Link>
+            )}
           </Stack>
           <Stack spacing={1.6} sx={{ minWidth: 0 }}>
             <Typography component="h3" variant="subtitle1" sx={{ fontWeight: 700 }}>Galería</Typography>
@@ -112,7 +118,7 @@ export default function ObjectDialog({ object, observations, user, open, onClose
               {photos.map((photo) => (
                 <Box component="li" key={photo.image} sx={{ minWidth: 0 }}>
                   <ButtonBase
-                    aria-label={`Ver ${photo.title}`}
+                    aria-label={'Ver ' + photo.title + (photo.source ? '' : ' · aporte de ' + photo.credit)}
                     aria-pressed={photo.image === current.image}
                     onClick={() => {
                       setActiveImage(photo.image)

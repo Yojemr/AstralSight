@@ -4,6 +4,7 @@ import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react
 import { dashboardFor, demoAccounts, demoPassword, demoPasswordDigest } from './features/auth/demoAccounts'
 import ExplorerPage from './features/explorer/pages/ExplorerPage'
 import SiteHeader from './shared/components/SiteHeader'
+import ViewErrorBoundary from './shared/components/ViewErrorBoundary'
 
 const AuthPage = lazy(() => import('./features/auth/pages/AuthPage'))
 const ObservationsPage = lazy(() => import('./features/observations/pages/ObservationsPage'))
@@ -90,21 +91,23 @@ export default function App() {
   return (
     <>
       <SiteHeader immersive={pathname === '/'} user={user} dashboardPath={user ? dashboardFor(user) : null} onSignOut={signOut} />
-      <Suspense fallback={<LinearProgress aria-label="Cargando vista" />}>
-        <Routes>
-          <Route index element={<ExplorerPage observations={observations} user={user} />} />
-          <Route path="ingresar" element={<AuthPage key="login" mode="login" {...authProps} />} />
-          <Route path="registro" element={<AuthPage key="register" mode="register" {...authProps} />} />
-          <Route path="recuperar" element={<AuthPage key="recover" mode="recover" {...authProps} />} />
-          <Route element={<RoleRoute user={user} role="user" />}>
-            <Route path="mis-fotos" element={<ObservationsPage user={user} observations={observations} onSubmit={addObservation} />} />
-          </Route>
-          <Route element={<RoleRoute user={user} role="admin" />}>
-            <Route path="moderacion" element={<ModerationPage observations={observations} onReview={reviewObservation} />} />
-          </Route>
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Suspense>
+      <ViewErrorBoundary key={pathname}>
+        <Suspense fallback={<LinearProgress aria-label="Cargando vista" />}>
+          <Routes>
+            <Route index element={<ExplorerPage observations={observations} user={user} />} />
+            <Route path="ingresar" element={<AuthPage key="login" mode="login" {...authProps} />} />
+            <Route path="registro" element={<AuthPage key="register" mode="register" {...authProps} />} />
+            <Route path="recuperar" element={<AuthPage key="recover" mode="recover" {...authProps} />} />
+            <Route element={<RoleRoute user={user} role="user" />}>
+              <Route path="mis-fotos" element={<ObservationsPage user={user} observations={observations} onSubmit={addObservation} />} />
+            </Route>
+            <Route element={<RoleRoute user={user} role="admin" />}>
+              <Route path="moderacion" element={<ModerationPage observations={observations} onReview={reviewObservation} />} />
+            </Route>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+      </ViewErrorBoundary>
     </>
   )
 }
