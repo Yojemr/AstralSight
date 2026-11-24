@@ -2,6 +2,8 @@
 
 AstralSight es un atlas astronómico interactivo construido con React, Vite y Material UI. El scroll recorre el Sistema Solar desde el Sol hasta Neptuno, muestra la distancia orbital aproximada y continúa hacia la nebulosa de Orión. Cada objeto tiene una galería de fotografías con sus créditos.
 
+Desarrollado por [Juan Esteban Maya · @Yojemr](https://github.com/Yojemr) · [Abrir el atlas](https://astralsight.vercel.app/).
+
 ## Ejecución local
 
 Se requiere Node.js 24 y npm.
