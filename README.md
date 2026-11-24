@@ -102,4 +102,4 @@ El [panorama de la Vía Láctea](https://www.eso.org/public/images/eso0932a/) es
 
 ## Autoría
 
-Proyecto desarrollado por **Juan Esteban Maya**. [Yojemr en GitHub](https://github.com/Yojemr).
+Desarrollado por [Juan Esteban Maya · @Yojemr](https://github.com/Yojemr).
