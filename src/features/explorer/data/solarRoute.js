@@ -11,7 +11,7 @@ const stops = objectGroups.flatMap((group) => group.objects
   .filter((object) => object.id !== 'luna')
   .map((object) => ({ group: group.id, object })))
 const stopIndexById = new Map(stops.map(({ object }, index) => [object.id, index]))
-export const routeIntervals = stops.length - 1
+export const routeIntervals = stops.length
 const lastSolarStop = stops.findLastIndex(({ group }) => group === 'solar')
 
 function solarOrbitAt(position) {
@@ -53,6 +53,7 @@ export function routeScale(progress) {
   const closestIndex = Math.round(offset)
   const position = Math.abs(closestIndex - offset) < 0.011 ? closestIndex : offset
   const nearest = stops[closestIndex]
+  if (!nearest) return { title: 'Fin del recorrido', value: null, note: null }
   if (position <= lastSolarStop || nearest.group === 'solar') {
     const { au, current, next } = solarOrbitAt(position)
     return {

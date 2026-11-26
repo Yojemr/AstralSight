@@ -311,6 +311,45 @@ const deepSky = [
       photo('andromeda-hubble.webp', 'Mosaico del disco de Andrómeda por Hubble', 'NASA, ESA, J. Dalcanton (University of Washington), B. F. Williams (University of Washington), L. C. Johnson (Northwestern University), and the PHAT Team', 'https://science.nasa.gov/asset/hubble/hubble-m31-phat-mosaic-uncropped/'),
     ],
   },
+  {
+    id: 'centaurus-a',
+    name: 'Centaurus A',
+    type: 'Galaxia activa',
+    lightYears: 13000000,
+    distanceSource: 'https://science.nasa.gov/asset/webb/multiwavelength-view-of-centaurus-a-hubble-spitzer-chandra-vla/',
+    position: { y: 52 },
+    size: 336,
+    photos: [
+      esoPhoto('centaurus-a.webp', 'Centaurus A en luz visible', 'ESO', 'eso1221a'),
+      esoPhoto('centaurus-a-chorros.webp', 'Chorros de Centaurus A en varias longitudes de onda', 'ESO/WFI (Optical); MPIfR/ESO/APEX/A.Weiss et al. (Submillimetre); NASA/CXC/CfA/R.Kraft et al. (X-ray)', 'eso0903a'),
+    ],
+  },
+  {
+    id: 'sombrero',
+    name: 'Galaxia del Sombrero',
+    type: 'Galaxia · M104',
+    lightYears: 28000000,
+    distanceSource: 'https://science.nasa.gov/mission/hubble/science/explore-the-night-sky/hubble-messier-catalog/messier-104/',
+    position: { y: 56 },
+    size: 358,
+    photos: [
+      photo('sombrero.webp', 'La galaxia del Sombrero por Hubble', 'NASA and The Hubble Heritage Team (STScI/AURA)', 'https://science.nasa.gov/asset/hubble/the-majestic-sombrero-galaxy-m104/'),
+      photo('sombrero-infrarrojo.webp', 'La galaxia del Sombrero en infrarrojo cercano', 'NASA, ESA, CSA, STScI', 'https://science.nasa.gov/asset/webb/sombrero-galaxy-nircam/'),
+    ],
+  },
+  {
+    id: 'm87',
+    name: 'Galaxia M87',
+    type: 'Galaxia elíptica',
+    lightYears: 54000000,
+    distanceSource: 'https://science.nasa.gov/mission/hubble/science/explore-the-night-sky/hubble-messier-catalog/messier-87/',
+    position: { y: 49 },
+    size: 332,
+    photos: [
+      photo('m87.webp', 'M87 y su chorro vistos por Hubble', 'NASA, ESA, A. Lessing (Stanford University), E. Baltz (Stanford University), M. Shara (AMNH), J. DePasquale (STScI)', 'https://esahubble.org/images/heic2411b/', ccBy40),
+      photo('m87-multibanda.webp', 'M87 en radio, rayos X y luz visible', 'NASA, ESA, and Z. Levay (STScI); NRAO/AUI/NSF/W. Cotton; NASA/CXC/CfA/W. Forman et al.; Hubble Heritage Team (STScI/AURA), and R. Gendler', 'https://esahubble.org/images/heic0815j/', ccBy40),
+    ],
+  },
 ]
 
 export const objectGroups = [

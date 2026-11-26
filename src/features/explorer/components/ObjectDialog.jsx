@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import {
   Box, Button, ButtonBase, Dialog, DialogContent, DialogTitle, Grow, IconButton,
@@ -7,12 +7,18 @@ import {
 import AddPhotoAlternateOutlined from '@mui/icons-material/AddPhotoAlternateOutlined'
 import CloseRounded from '@mui/icons-material/CloseRounded'
 import ZoomInRounded from '@mui/icons-material/ZoomInRounded'
-import ZoomOutRounded from '@mui/icons-material/ZoomOutRounded'
+import StraightenRounded from '@mui/icons-material/StraightenRounded'
+import ImageViewer from './ImageViewer'
+import { objectFacts } from '../data/objectFacts'
+import { diametersKm } from '../data/bodyDiameters'
 import { objectDistance } from '../data/solarRoute'
+
+const SizeComparison = lazy(() => import('./SizeComparison'))
 
 export default function ObjectDialog({ object, observations, user, open, onClose, onExited }) {
   const [activeImage, setActiveImage] = useState(object.photos[0].image)
-  const [zoom, setZoom] = useState(false)
+  const [viewingImage, setViewingImage] = useState(false)
+  const [showComparison, setShowComparison] = useState(false)
   const mobile = useMediaQuery((theme) => theme.breakpoints.down('sm'))
   const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
   const community = observations
@@ -23,6 +29,7 @@ export default function ObjectDialog({ object, observations, user, open, onClose
   const contributionPath = `/mis-fotos?objeto=${object.id}`
   const signInPath = `/ingresar?destino=${encodeURIComponent(contributionPath)}`
   const distance = objectDistance(object)
+  const facts = objectFacts[object.id]
 
   return (
     <Dialog
@@ -62,18 +69,30 @@ export default function ObjectDialog({ object, observations, user, open, onClose
         </IconButton>
       </DialogTitle>
       <DialogContent sx={{ px: { xs: 2.25, md: 4 }, pb: { xs: 2.5, md: 4 } }}>
+        {facts && (
+          <Stack spacing={0.75} sx={{ mb: { xs: 2, md: 2.5 } }}>
+            <Typography variant="body2">{facts.detail}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              <Box component="span" sx={{ fontWeight: 700, color: 'text.primary', mr: 1 }}>Curiosidad</Box>
+              {facts.curiosity}{' '}
+              <Link href={facts.source} target="_blank" rel="noreferrer" variant="caption" color="inherit" sx={{ ml: 0.5 }}>
+                Fuente
+              </Link>
+            </Typography>
+          </Stack>
+        )}
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1.25fr 1fr' }, gap: { xs: 2.5, md: 4 } }}>
           <Stack spacing={1.15} sx={{ minWidth: 0, position: 'relative' }}>
             <ButtonBase
               disableRipple
-              onClick={() => setZoom((value) => !value)}
+              onClick={() => setViewingImage(true)}
               aria-label="Ampliar imagen"
-              aria-pressed={zoom}
+              aria-haspopup="dialog"
               sx={{
                 width: '100%', height: { xs: 'min(36svh, 290px)', sm: 'clamp(255px, 52svh, 450px)' },
                 overflow: 'hidden', border: '1px solid #ffffff29', borderRadius: 1.4,
                 bgcolor: '#0008', position: 'relative',
-                cursor: zoom ? 'zoom-out' : 'zoom-in',
+                cursor: 'zoom-in',
                 '&.Mui-focusVisible': { outline: '2px solid', outlineColor: 'primary.main' },
               }}
             >
@@ -83,12 +102,10 @@ export default function ObjectDialog({ object, observations, user, open, onClose
                 alt={current.title}
                 sx={{
                   width: '100%', height: '100%', objectFit: 'contain',
-                  transform: zoom ? 'scale(1.47)' : 'scale(1)',
-                  transition: reducedMotion ? 'none' : 'transform 440ms cubic-bezier(.2,.8,.2,1)',
                 }}
               />
               <Box sx={{ display: 'grid', placeItems: 'center', position: 'absolute', bottom: 10, right: 10, width: 34, height: 34, borderRadius: '50%', bgcolor: '#000c', color: '#eee' }}>
-                {zoom ? <ZoomOutRounded fontSize="small" /> : <ZoomInRounded fontSize="small" />}
+                <ZoomInRounded fontSize="small" />
               </Box>
             </ButtonBase>
             <Typography component="h3" variant="subtitle1" sx={{ fontWeight: 650, lineHeight: 1.3, overflowWrap: 'anywhere' }}>
@@ -120,10 +137,7 @@ export default function ObjectDialog({ object, observations, user, open, onClose
                   <ButtonBase
                     aria-label={'Ver ' + photo.title + (photo.source ? '' : ' · aporte de ' + photo.credit)}
                     aria-pressed={photo.image === current.image}
-                    onClick={() => {
-                      setActiveImage(photo.image)
-                      setZoom(false)
-                    }}
+                    onClick={() => setActiveImage(photo.image)}
                     sx={{
                       width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch',
                       overflow: 'hidden', borderRadius: 1,
@@ -147,21 +161,39 @@ export default function ObjectDialog({ object, observations, user, open, onClose
                 </Box>
               ))}
             </Box>
-            {user?.role !== 'admin' && (
-              <Button
-                component={RouterLink}
-                to={user ? contributionPath : signInPath}
-                variant="outlined"
-                startIcon={<AddPhotoAlternateOutlined />}
-                onClick={onClose}
-                sx={{ alignSelf: 'flex-start' }}
-              >
-                Aportar una foto
-              </Button>
-            )}
+            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
+              {diametersKm[object.id] && (
+                <Button
+                  variant="outlined" startIcon={<StraightenRounded />}
+                  onClick={() => setShowComparison(true)}
+                  aria-haspopup="dialog"
+                >
+                  Comparar tamaños
+                </Button>
+              )}
+              {user?.role !== 'admin' && (
+                <Button
+                  component={RouterLink}
+                  to={user ? contributionPath : signInPath}
+                  variant="outlined"
+                  startIcon={<AddPhotoAlternateOutlined />}
+                  onClick={onClose}
+                >
+                  Aportar una foto
+                </Button>
+              )}
+            </Stack>
           </Stack>
         </Box>
       </DialogContent>
+      {showComparison && (
+        <Suspense fallback={null}>
+          <SizeComparison object={object} reducedMotion={reducedMotion} onClose={() => setShowComparison(false)} />
+        </Suspense>
+      )}
+      {viewingImage && (
+        <ImageViewer photo={current} reducedMotion={reducedMotion} onClose={() => setViewingImage(false)} />
+      )}
     </Dialog>
   )
 }

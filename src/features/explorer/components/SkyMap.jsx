@@ -9,6 +9,7 @@ import { markerImageFor, objectGroups, objects } from '../data/catalog'
 import { objectFraction, routeIntervals, routeScale } from '../data/solarRoute'
 import usePanorama from '../hooks/usePanorama'
 import CelestialMarker from './CelestialMarker'
+import DiscoveryMarker from './DiscoveryMarker'
 import SolarProgress from './SolarProgress'
 
 const navControl = {
@@ -35,7 +36,7 @@ export default function SkyMap({ onSelect }) {
         '--atlas-panorama-width': 'calc(100cqw + ' + routeIntervals + ' * var(--atlas-stop-spacing))',
       }}
     >
-      <Box sx={{ position: 'sticky', top: 0, height: '100svh', overflow: 'hidden', bgcolor: '#040404', isolation: 'isolate' }}>
+      <Box sx={{ position: 'sticky', top: 0, height: '100svh', overflow: 'clip', bgcolor: '#040404', isolation: 'isolate' }}>
         <Box component="picture" sx={{ display: 'contents' }}>
           <source media="(width < 600px)" srcSet={skyImage.mobileSrc} />
           <Box
@@ -91,6 +92,7 @@ export default function SkyMap({ onSelect }) {
               {objects.map((object) => (
                 <CelestialMarker key={object.id} object={object} fraction={objectFraction(object)} onSelect={onSelect} />
               ))}
+              <DiscoveryMarker onRestart={() => goTo(0)} />
             </Box>
           </Box>
         </Box>
@@ -122,18 +124,20 @@ export default function SkyMap({ onSelect }) {
           <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1.4 }}>
             {scale.title}
           </Typography>
-          <Typography
-            data-atlas-distance
-            component="span"
-            sx={{ fontSize: { xs: '1.42rem', sm: 'clamp(1.5rem, 2.6vw, 2.65rem)' }, fontWeight: 700, fontVariantNumeric: 'tabular-nums', lineHeight: 1.1 }}
-          >
-            {scale.value}
-          </Typography>
+          {scale.value && (
+            <Typography
+              data-atlas-distance
+              component="span"
+              sx={{ fontSize: { xs: '1.42rem', sm: 'clamp(1.5rem, 2.6vw, 2.65rem)' }, fontWeight: 700, fontVariantNumeric: 'tabular-nums', lineHeight: 1.1 }}
+            >
+              {scale.value}
+            </Typography>
+          )}
           {scale.source ? (
             <Link href={scale.source} target="_blank" rel="noreferrer" variant="caption" color="text.secondary" underline="hover">
               {scale.note}
             </Link>
-          ) : (
+          ) : scale.note && (
             <Typography variant="caption" color="text.secondary">{scale.note}</Typography>
           )}
         </Stack>
@@ -241,6 +245,14 @@ export default function SkyMap({ onSelect }) {
               </MenuItem>
             )),
           ])}
+          <MenuItem
+            onClick={() => {
+              setMenuAnchor(null)
+              goTo(1, 'auto')
+            }}
+          >
+            Por descubrir
+          </MenuItem>
         </Menu>
       </Box>
       <Box aria-hidden="true" sx={{ height: 'calc(var(--atlas-panorama-width) - 100cqw)' }} />

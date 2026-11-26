@@ -3,10 +3,8 @@ import Box from '@mui/material/Box'
 import ButtonBase from '@mui/material/ButtonBase'
 import Typography from '@mui/material/Typography'
 import { markerImageFor } from '../data/catalog'
+import { markerPresentation } from '../data/markerPresentation'
 
-const softEdge = 'radial-gradient(ellipse, #000 46%, #000b 60%, transparent 72%)'
-const panoramaMarkers = new Set(['via-lactea', 'andromeda'])
-const transparentModels = new Set(['haumea', 'makemake', 'eris'])
 const reduceMotion = '@media (prefers-reduced-motion: reduce)'
 const markerFocus = '&:has(.atlas-target:hover, .atlas-target.Mui-focusVisible) .atlas-body'
 
@@ -46,12 +44,7 @@ function CelestialMarker({ object, fraction, onSelect }) {
           ...position,
           pointerEvents: 'none',
           objectFit: 'contain',
-          mixBlendMode: transparentModels.has(object.id) ? 'normal' : 'screen',
-          clipPath: { luna: 'circle(49% at 50% 50%)', saturno: 'inset(25.5% 2%)' }[object.id] ?? 'none',
-          maskImage: {
-            sol: 'radial-gradient(circle closest-side at 50% 49%, black 79%, #000d 86%, transparent 99%)',
-            orion: 'radial-gradient(ellipse, #000 34%, #000d 48%, transparent 70%)',
-          }[object.id] ?? (panoramaMarkers.has(object.id) ? softEdge : 'none'),
+          ...markerPresentation(object.id),
           transition: 'scale 380ms ease, rotate 380ms ease, filter 260ms ease',
           [reduceMotion]: { transition: 'none' },
         }}

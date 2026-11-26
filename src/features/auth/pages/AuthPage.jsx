@@ -7,7 +7,7 @@ import { getObject } from '../../explorer/data/catalog'
 import { dashboardFor } from '../demoAccounts'
 
 const formInfo = {
-  login: { title: 'Iniciar sesión', action: 'Ingresar', description: 'Accede a tus aportes y al mapa celeste.' },
+  login: { title: 'Iniciar sesión', action: 'Ingresar', description: 'Accede a tus aportes y al recorrido celeste.' },
   register: { title: 'Crear una cuenta', action: 'Registrarme', description: 'Únete como observador y comparte tus fotografías astronómicas.' },
   recover: { title: 'Recuperar contraseña', action: 'Solicitar recuperación', description: 'Escribe el correo asociado a tu cuenta.' },
 }
@@ -70,7 +70,7 @@ export default function AuthPage({ mode, user, onSignIn, onRegister }) {
         <Stack spacing={2.4} sx={{ p: { xs: 2.5, sm: 4.5 }, maxWidth: 570, width: '100%', mx: 'auto' }}>
           <Link component={RouterLink} to={recover ? '/ingresar' + authQuery : '/'} underline="hover" sx={{ display: 'inline-flex', gap: 0.75, alignItems: 'center', alignSelf: 'flex-start' }}>
             <ArrowBackRounded fontSize="small" />
-            {recover ? 'Volver al inicio de sesión' : 'Volver al mapa'}
+            {recover ? 'Volver al inicio de sesión' : 'Volver al recorrido'}
           </Link>
           <Box>
             <Typography variant="h2" component="h1" sx={{ fontSize: { xs: '2rem', sm: '2.9rem' }, mb: 1 }}>{title}</Typography>

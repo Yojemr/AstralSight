@@ -9,6 +9,7 @@ import ViewErrorBoundary from './shared/components/ViewErrorBoundary'
 const AuthPage = lazy(() => import('./features/auth/pages/AuthPage'))
 const ObservationsPage = lazy(() => import('./features/observations/pages/ObservationsPage'))
 const ModerationPage = lazy(() => import('./features/moderation/pages/ModerationPage'))
+const TonightPage = lazy(() => import('./features/tonight/pages/TonightPage'))
 
 function RoleRoute({ user, role }) {
   if (!user) return <Navigate to="/ingresar" replace />
@@ -95,6 +96,7 @@ export default function App() {
         <Suspense fallback={<LinearProgress aria-label="Cargando vista" />}>
           <Routes>
             <Route index element={<ExplorerPage observations={observations} user={user} />} />
+            <Route path="esta-noche" element={<TonightPage observations={observations} user={user} />} />
             <Route path="ingresar" element={<AuthPage key="login" mode="login" {...authProps} />} />
             <Route path="registro" element={<AuthPage key="register" mode="register" {...authProps} />} />
             <Route path="recuperar" element={<AuthPage key="recover" mode="recover" {...authProps} />} />
